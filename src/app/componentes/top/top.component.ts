@@ -26,7 +26,7 @@ export class TopComponent implements OnInit {
   ngOnInit() {
 
     this.oidcSecurityService.checkAuth().subscribe((dados) => {
-
+      
       if (dados.isAuthenticated) {
         this.emailUsuario = dados.userData.email;
         this.nomeUsuario = dados.userData.name;
@@ -36,6 +36,24 @@ export class TopComponent implements OnInit {
       }
     });
 
+  }
+
+  logout(){
+    this.authService.logout();
+  }
+
+  toggleSidebar() {
+    const body = document.querySelector('body');
+    if (body) {
+      body.classList.toggle('toggle-sidebar');
+    }
+  }
+
+
+  dropdownVisible = false; // Controle do estado do dropdown
+
+  toggleDropdown() {
+    this.dropdownVisible = !this.dropdownVisible;
   }
 }
 
