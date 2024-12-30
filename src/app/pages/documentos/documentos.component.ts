@@ -1,6 +1,7 @@
 import { Component , OnInit} from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-documentos',
@@ -19,7 +20,9 @@ export class DocumentosComponent implements OnInit{
   totalPages = 1; // Total de páginas
   lastEvaluatedKeys: any[] = []; // Lista de lastEvaluatedKey para cada página
 
-  apiUrl = 'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos';
+  //apiUrl = 'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos';
+  //apiUrl = '/api/cadastro/documentos';
+  apiUrl = environment.apiUrlDocumentos;
 
   constructor(private http: HttpClient, private router: Router) {}
 

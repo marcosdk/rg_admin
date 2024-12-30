@@ -2,3 +2,25 @@
 <app-menu></app-menu>
 <router-outlet></router-outlet>
 <app-footer></app-footer>
+
+
+<ng-template #noAuth>
+    <button (click)="login()">Login</button>
+    <hr />
+  </ng-template>
+
+
+  <div *ngIf="isAuthenticated; else noAuth">
+
+    <br />
+  
+    Is Authenticated: {{ isAuthenticated }}
+  
+    <br />
+    userData
+   
+  
+    <br />
+  </div>
+  
+<button (click)="logout()">Logout</button>
