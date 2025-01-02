@@ -17,6 +17,7 @@ export class TopComponent implements OnInit {
 
   nomeUsuario?: string;
   emailUsuario?: string;
+  dropdownVisible = false; // Controle do estado do dropdown
   
   isAuthenticated = false;
 
@@ -30,9 +31,6 @@ export class TopComponent implements OnInit {
       if (dados.isAuthenticated) {
         this.emailUsuario = dados.userData.email;
         this.nomeUsuario = dados.userData.name;
-       
-       
-     
       }
     });
 
@@ -49,11 +47,16 @@ export class TopComponent implements OnInit {
     }
   }
 
-
-  dropdownVisible = false; // Controle do estado do dropdown
-
   toggleDropdown() {
     this.dropdownVisible = !this.dropdownVisible;
+
+    this.oidcSecurityService.checkAuth().subscribe((dados) => {
+      
+      if (dados.isAuthenticated) {
+        this.emailUsuario = dados.userData.email;
+        this.nomeUsuario = dados.userData.name;
+      }
+    });
   }
 }
 

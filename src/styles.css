@@ -1242,3 +1242,33 @@ h6 {
     background-color: #333;
     color: white;
   }
+
+
+
+/*--------------------------------------------------------------
+# paginação
+--------------------------------------------------------------*/
+  
+.pagination .page-link {
+  color: #000; /* Cor do texto preto */
+  background-color: #fff; /* Cor de fundo branca */
+  border-color: #ccc; /* Cor da borda cinza */
+}
+
+.pagination .page-link:hover {
+  color: #fff; /* Cor do texto ao passar o mouse */
+  background-color: #000; /* Cor de fundo preta ao passar o mouse */
+  border-color: #000; /* Cor da borda preta */
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #000; /* Cor de fundo preta para página ativa */
+  border-color: #000; /* Cor da borda preta */
+  color: #fff; /* Cor do texto branco para página ativa */
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #999; /* Cor do texto para páginas desativadas */
+  background-color: #f5f5f5; /* Fundo cinza claro */
+  border-color: #ddd; /* Borda cinza clara */
+}
