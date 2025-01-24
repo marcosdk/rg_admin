@@ -59,6 +59,7 @@
                     <th scope="col">Nome do Desbravador</th>
                     <th scope="col">CPF</th>
                     <th scope="col">Nome do Responsável</th>
+                    <th scope="col">Telefone Celular</th>
                     <th scope="col">Status</th>
                     <th scope="col">Ações</th>
                   </tr>
@@ -70,6 +71,7 @@
                       <td>{{ documento.NOME_DESBRAVADOR }}</td>
                       <td>{{ documento.CPF_DESBRAVADOR }}</td>
                       <td>{{ documento.NOME_RESPONSAVEL }}</td>
+                      <td>{{ documento.TELEFONE_CELULAR }}</td>
                       <td>{{ documento.STATUS }}</td>
                       <td>
                         <button class="btn btn-dark" (click)="edit(documento.id)">Editar</button>

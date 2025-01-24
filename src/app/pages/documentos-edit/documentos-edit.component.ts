@@ -19,6 +19,8 @@ export class DocumentosEditComponent implements OnInit {
     NOME_DESBRAVADOR: '',
     CPF_DESBRAVADOR: '',
     RG_DESBRAVADOR: '',
+    DATA_NASCIMENTO: '',
+    TELEFONE_CELULAR: '',
     NOME_RESPONSAVEL: '',
     CPF_RESPONSAVEL: '',
     RG_RESPONSAVEL: '',
