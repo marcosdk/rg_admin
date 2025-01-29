@@ -17,6 +17,8 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpTokenInterceptor } from './http-token.interceptor';
 import { AuthCallbackComponent } from './componentes/auth-callback/auth-callback.component';
 import { environment } from '../environments/environment';
+import { PhoneFormatPipe } from './componentes/phone-format/phone-format.pipe';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 
 @NgModule({
@@ -28,7 +30,8 @@ import { environment } from '../environments/environment';
     HomeComponent,
     DocumentosComponent,
     DocumentosEditComponent,
-    AuthCallbackComponent
+    AuthCallbackComponent,
+    PhoneFormatPipe
 
   ],
   imports: [
@@ -37,6 +40,7 @@ import { environment } from '../environments/environment';
     FormsModule ,
     HttpClientModule,
     AuthConfigModule,
+    NgxMaskDirective,
     AuthModule.forRoot({
       config: {
         authority: 'https://cognito-idp.sa-east-1.amazonaws.com/sa-east-1_ukbz1G50a',
@@ -62,6 +66,7 @@ import { environment } from '../environments/environment';
       useClass: HttpTokenInterceptor,
       multi: true,
     },
+    provideNgxMask()
   ],
   bootstrap: [AppComponent]
 })

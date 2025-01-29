@@ -48,6 +48,17 @@ export class DocumentosEditComponent implements OnInit {
     
   }
 
+  formatDateToBrazilian(date: string): string {
+    const [year, month, day] = date.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
+  // Converter de dd/MM/yyyy para yyyy-MM-dd
+  formatDateToISO(date: string): string {
+    const [day, month, year] = date.split('/');
+    return `${year}-${month}-${day}`;
+  }
+
   getFiles(id: string): void {
     this.http.get<{ nome: string; link: string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
       next: (response) => {
@@ -63,6 +74,9 @@ export class DocumentosEditComponent implements OnInit {
     this.http.get(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/${id}`).subscribe({
       next: (response) => {
         this.formData = response;
+        if (this.formData.DATA_NASCIMENTO) {
+          this.formData.DATA_NASCIMENTO = this.formatDateToBrazilian(this.formData.DATA_NASCIMENTO);
+        }
       },
       error: (err) => {
         console.error('Erro ao buscar dados', err);
@@ -70,14 +84,40 @@ export class DocumentosEditComponent implements OnInit {
     });
   }
 
+  confirmDelete(): void {
+    if (confirm(`Tem certeza que deseja excluir o regitro de "${this.formData.NOME_DESBRAVADOR}"?`)) {
+      this.deleteRegistro(this.id);
+    }
+  }
+  
+  deleteRegistro(id: string): void {
+    this.http.delete(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos?id=${id}`).subscribe({
+      next: () => {
+        alert('Registro excluído com sucesso.');
+        console.log('Dados atualizados com sucesso:');
+        this.router.navigate(['/documentos']);
+      },
+      error: (error) => {
+        alert('Erro ao excluir o documento.');
+        console.error(error);
+      }
+    });
+  }
+
+  
   saveData(): void {
     if (!this.id) {
       console.error('ID não encontrado para atualizar os dados.');
       return;
     }
 
+    const dataToSend = { ...this.formData };
+    if (dataToSend.DATA_NASCIMENTO) {
+      dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
+    }
+
     const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
-    this.http.put(url, this.formData).subscribe({
+    this.http.put(url, dataToSend).subscribe({
       next: (response) => {
         console.log('Dados atualizados com sucesso:', response);
         this.router.navigate(['/documentos']);
