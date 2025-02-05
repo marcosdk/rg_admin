@@ -1,7 +1,10 @@
-import { Component, OnInit  } from '@angular/core';
+import { Component, OnInit, ViewChild,ElementRef  } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import imageCompression from 'browser-image-compression';
+
 
 @Component({
   selector: 'app-documentos-edit',
@@ -11,7 +14,8 @@ import { Router } from '@angular/router';
   styleUrl: './documentos-edit.component.css'
 })
 export class DocumentosEditComponent implements OnInit {
-
+  
+  form!: FormGroup;
   id!: string;
   data: any;
 
@@ -30,11 +34,28 @@ export class DocumentosEditComponent implements OnInit {
 
 
   arquivos = [
-    { nome: 'RG', link: '/path/to/arquivo1.pdf' },
-    { nome: 'CPF', link: '/path/to/arquivo2.docx' },
+    { nome: 'RG', link: '/path/to/arquivo1.pdf', key:'rg' },
+    { nome: 'CPF', link: '/path/to/arquivo2.docx', key:'cpf' },
   ];
 
-  constructor(private route: ActivatedRoute, private http: HttpClient,  private router: Router) {}
+  tiposDocumentos = [
+    { key: 'rgDesbravador', label: 'RG' },
+    { key: 'cpfDesbravador', label: 'CPF' },
+    { key: 'convenioDesbravador', label: 'Convênio do Desbravador' },
+    { key: 'susDesbravador', label: 'Sus' },
+    { key: 'carteiraVacDesbravador', label: 'Carteira de Vacinação do Desbravador' },
+    { key: 'comResidenciaDesbravador', label: 'Comprovante de Residência' },
+    { key: 'rgResponsavel', label: 'RG do Responsável' },
+    { key: 'cpfResponsavel', label: 'CPF do Responsável' }
+  ];
+
+  constructor(private route: ActivatedRoute, private http: HttpClient,  private fb: FormBuilder, private router: Router) {
+    this.form = this.fb.group(
+      {
+        uploadArquivo: [null],
+      },
+    );
+  }
 
   ngOnInit(): void {
     // Obter o ID da rota.
@@ -46,6 +67,11 @@ export class DocumentosEditComponent implements OnInit {
     // carrega arquivos
     this.getFiles(this.id);
     
+  }
+
+  getTiposDisponiveis() {
+    const arquivosKeys = this.arquivos.map(a => a.key);
+    return this.tiposDocumentos.filter(tipo => !arquivosKeys.includes(tipo.key));
   }
 
   formatDateToBrazilian(date: string): string {
@@ -60,7 +86,7 @@ export class DocumentosEditComponent implements OnInit {
   }
 
   getFiles(id: string): void {
-    this.http.get<{ nome: string; link: string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
+    this.http.get<{ nome: string; link: string; key: string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
       next: (response) => {
         this.arquivos = response;
       },
@@ -131,4 +157,136 @@ export class DocumentosEditComponent implements OnInit {
   voltar(): void{
     this.router.navigate([`/documentos`]);
   }
+
+  confirmDeleteFile(tipoArquivo: string, keyArquivo: string): void {
+    if (confirm(`Tem certeza que deseja excluir o arquivo "${tipoArquivo}"?`)) {
+      this.deleteFile(this.id, tipoArquivo, keyArquivo);
+    }
+  }
+
+  deleteFile(idDesbravador: string, tipoArquivo: string, keyArquivo:string): void {
+    const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file/delete`;
+  
+    const payload = {
+      idDesbravador: idDesbravador,
+      tipoArquivo: keyArquivo
+    };
+  
+    this.http.post(url, payload).subscribe({
+      next: () => {
+        alert(`Arquivo "${tipoArquivo}" excluído com sucesso.`);
+        this.getFiles(this.id); // Atualiza a lista de arquivos
+      },
+      error: (error) => {
+        alert('Erro ao excluir o arquivo.');
+        console.error(error);
+      }
+    });
+  }
+
+
+
+  tipoDocumentoSelecionado: string = '';
+  arquivoSelecionado: File | null = null;
+
+  async onFileChange(event: any, fieldName: string) {
+    const reader = new FileReader();
+    let file = event.target.files[0];
+
+    if (file) {
+      if (file.type !== 'image/jpeg') {
+        alert('Apenas arquivos JPG são permitidos.');
+        event.target.value = '';
+        return;
+      }
+
+
+      // Verifica o tamanho do arquivo
+      if (file.size > 1 * 1024 * 1024) {
+        try {
+          const options = {
+            maxSizeMB: 1, // Tamanho máximo em MB
+            maxWidthOrHeight: 1920, // Dimensão máxima
+            useWebWorker: true,
+          };
+
+          // Compacta a imagem
+          file = await imageCompression(file, options);
+          console.log('Arquivo compactado para:', file.size / 1024, 'KB');
+        } catch (error) {
+          console.error('Erro ao compactar imagem:', error);
+          alert('Erro ao processar o arquivo. Tente novamente.');
+          return;
+        }
+      }
+
+      this.arquivoSelecionado = file;
+    }
+
+    // Se o arquivo for válido, você pode atribuí-lo ao formControl
+    //this.form.patchValue({ [fieldName]: file });
+    reader.onload = () => {
+      this.form.patchValue({ [fieldName]: reader.result });
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  }
+
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
+  
+  uploadDocumento() {
+    if (!this.tipoDocumentoSelecionado || !this.arquivoSelecionado) {
+      alert('Selecione um tipo de documento e um arquivo JPG.');
+      return;
+    }
+
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    // Simulação de envio para o servidor
+    const formData = new FormData();
+    formData.append('tipoDocumento', this.tipoDocumentoSelecionado);
+    formData.append('arquivo', this.arquivoSelecionado);
+
+    const apiUrlUpload   = 'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file';
+    const payloadUpload = {
+      idDesbravador: this.id,
+      tipoArquivo: this.tipoDocumentoSelecionado,
+      arquivo: this.form.value.uploadArquivo,
+    };
+
+    this.http.post(apiUrlUpload, payloadUpload, { headers }).subscribe(
+      uploadResponse => {
+        alert(`Upload do arquivo realizado com sucesso.`);
+        // carrega arquivos
+        this.getFiles(this.id);
+
+        // **Resetar seleção**
+        this.tipoDocumentoSelecionado = '';
+        this.arquivoSelecionado = null;
+
+        // **Limpar campo de input**
+        if (this.fileInput) {
+          this.fileInput.nativeElement.value = '';
+        }
+      },
+      uploadError => {
+        console.error(`Erro ao fazer upload do arquivo:`, uploadError);
+        alert(`Erro ao fazer upload do arquivo.`);
+      }
+    );
+
+
+    // Aqui você chamaria o serviço para enviar para o backend/S3
+    console.log('Enviando documento:', this.tipoDocumentoSelecionado, this.arquivoSelecionado.name);
+
+
+    // Resetar seleção
+    this.tipoDocumentoSelecionado = '';
+    this.arquivoSelecionado = null;
+  }
+
+
 }
