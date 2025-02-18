@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild,ElementRef  } from '@angular/core';
+import { Component, OnInit, ViewChild,ElementRef, ChangeDetectorRef , NgZone  } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -15,6 +15,8 @@ import imageCompression from 'browser-image-compression';
 })
 export class DocumentosEditComponent implements OnInit {
   
+  gerandoPDF: boolean = false;
+
   form!: FormGroup;
   id!: string;
   data: any;
@@ -32,10 +34,13 @@ export class DocumentosEditComponent implements OnInit {
     STATUS: ''
   };
 
+  arquivosSelecionados: string[] = [];
+
+  
 
   arquivos = [
-    { nome: 'RG', link: '/path/to/arquivo1.pdf', key:'rg' },
-    { nome: 'CPF', link: '/path/to/arquivo2.docx', key:'cpf' },
+    { nome: 'RG', link: '/path/to/arquivo1.pdf', key:'rg' , extension: 'pdf', file:'' },
+    { nome: 'CPF', link: '/path/to/arquivo2.docx', key:'cpf' , extension: 'pdf',file:''},
   ];
 
   tiposDocumentos = [
@@ -49,7 +54,7 @@ export class DocumentosEditComponent implements OnInit {
     { key: 'cpfResponsavel', label: 'CPF do Responsável' }
   ];
 
-  constructor(private route: ActivatedRoute, private http: HttpClient,  private fb: FormBuilder, private router: Router) {
+  constructor(private route: ActivatedRoute, private http: HttpClient,  private fb: FormBuilder, private router: Router, private cdr: ChangeDetectorRef, private ngZone: NgZone) {
     this.form = this.fb.group(
       {
         uploadArquivo: [null],
@@ -86,7 +91,7 @@ export class DocumentosEditComponent implements OnInit {
   }
 
   getFiles(id: string): void {
-    this.http.get<{ nome: string; link: string; key: string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
+    this.http.get<{ nome: string; link: string; key: string, extension: string, file:string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
       next: (response) => {
         this.arquivos = response;
       },
@@ -194,15 +199,19 @@ export class DocumentosEditComponent implements OnInit {
     let file = event.target.files[0];
 
     if (file) {
-      if (file.type !== 'image/jpeg') {
-        alert('Apenas arquivos JPG são permitidos.');
+
+
+      const allowedTypes = ['image/jpeg', 'application/pdf'];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert('Apenas arquivos JPG ou PDF são permitidos.');
         event.target.value = '';
         return;
       }
 
 
       // Verifica o tamanho do arquivo
-      if (file.size > 1 * 1024 * 1024) {
+      if ( file.type === 'image/jpeg' && file.size > 1 * 1024 * 1024) {
         try {
           const options = {
             maxSizeMB: 1, // Tamanho máximo em MB
@@ -239,7 +248,7 @@ export class DocumentosEditComponent implements OnInit {
   
   uploadDocumento() {
     if (!this.tipoDocumentoSelecionado || !this.arquivoSelecionado) {
-      alert('Selecione um tipo de documento e um arquivo JPG.');
+      alert('Selecione um tipo de documento e um arquivo JPG ou PDF.');
       return;
     }
 
@@ -286,6 +295,82 @@ export class DocumentosEditComponent implements OnInit {
     // Resetar seleção
     this.tipoDocumentoSelecionado = '';
     this.arquivoSelecionado = null;
+  }
+
+
+
+  selecionarTodosJPG() {
+    console.log('Selecionar/Desmarcar todos os arquivos JPG');
+  
+    const jpgs = this.arquivos.filter(arquivo => arquivo.extension.toLowerCase() === 'jpg').map(arquivo => arquivo.file);
+  
+    if (this.arquivosSelecionados.length === jpgs.length) {
+      // Se todos os JPGs estão selecionados, desmarcar todos
+      this.arquivosSelecionados = [];
+      console.log('Todos desmarcados:', this.arquivosSelecionados);
+    } else {
+      // Se nem todos estão selecionados, marcar todos
+      this.arquivosSelecionados = jpgs;
+      console.log('Todos selecionados:', this.arquivosSelecionados);
+    }
+  }
+  
+
+  toggleArquivo(arquivo: any) {
+    console.log('toggleArquivo');
+    if (arquivo.extension.toLowerCase() === 'jpg') {
+      console.log('jpg');
+      const index = this.arquivosSelecionados.indexOf(arquivo.file);
+      console.log('index %d', index);
+      if (index === -1) {
+        this.arquivosSelecionados.push(arquivo.file);
+      } else {
+        this.arquivosSelecionados.splice(index, 1);
+      }
+    }
+  }
+
+
+  gerarPDF() {
+
+
+
+    this.ngZone.run(() => {
+      this.gerandoPDF = true;
+    });    
+    this.cdr.detectChanges(); // Força o Angular a atualizar a UI
+    
+
+    const body = {
+      fileName: this.formData.NOME_DESBRAVADOR, // 'Lucas Pingituro Domingues',
+      fileKeys: this.arquivosSelecionados
+    };
+
+    console.log(body);
+
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    
+    this.http.post<{ message: string; pdfUrl: string }>(
+      'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/pdf',
+      body,
+      { headers }
+    ).subscribe(response => {
+      this.ngZone.run(() => {
+        this.gerandoPDF = false;
+      });
+      this.cdr.detectChanges(); // Força o Angular a atualizar a UI
+    
+      if (response.pdfUrl) {
+        window.open(response.pdfUrl, '_blank'); // Aguarda um pouco antes de abrir
+        
+      }
+    }, error => {
+      this.ngZone.run(() => {
+        this.gerandoPDF = false; // Garantir que o loading some
+      });
+      this.cdr.detectChanges(); // Força o Angular a atualizar a UI
+      console.error('Erro na requisição:', error);
+    });
   }
 
 
