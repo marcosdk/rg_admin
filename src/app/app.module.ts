@@ -18,6 +18,7 @@ import { HttpTokenInterceptor } from './http-token.interceptor';
 import { AuthCallbackComponent } from './componentes/auth-callback/auth-callback.component';
 import { environment } from '../environments/environment';
 import { PhoneFormatPipe } from './componentes/phone-format/phone-format.pipe';
+import { CpfFormatPipe } from './componentes/cpf-format/cpf-format.pipe';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 
@@ -31,8 +32,9 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     DocumentosComponent,
     DocumentosEditComponent,
     AuthCallbackComponent,
-    PhoneFormatPipe
-
+    CpfFormatPipe,
+    PhoneFormatPipe,
+    
   ],
   imports: [
     BrowserModule,

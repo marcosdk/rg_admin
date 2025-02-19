@@ -90,7 +90,7 @@
                     <tr *ngFor="let documento of documentos">
                       <td>{{ documento.UNIDADE }}</td>
                       <td>{{ documento.NOME_DESBRAVADOR }}</td>
-                      <td>{{ documento.CPF_DESBRAVADOR }}</td>
+                      <td>{{ documento.CPF_DESBRAVADOR | cpfFormat }}</td>
                       <td>{{ documento.NOME_RESPONSAVEL }}</td>
                       <td>{{ documento.TELEFONE_CELULAR | phoneFormat }}</td>
                       <td>{{ documento.STATUS }}</td>
@@ -108,7 +108,7 @@
               <!-- End Bordered Table -->
             </div>
 
-
+            <div class="table-responsive">
 
               <nav aria-label="Page navigation example">
                 <ul class="pagination justify-content-end">
@@ -123,9 +123,11 @@
                   </li>
                 </ul>
               </nav>
-              
-              
 
+            </div>
+              <div class="text-center" style="margin-top: 50px;">
+                <button class="btn btn-dark" (click)="novo()">Adicionar Desbravador</button>
+              </div>
             </div>
           </div>
 

@@ -57,6 +57,11 @@ export class DocumentosComponent implements OnInit{
   }
 
   // Ação de pesquisa
+  novo(): void {
+    this.router.navigate([`/documentos/novo`]);
+  }
+
+  // Ação de pesquisa
   pesquisar(): void {
     this.currentPage = 1;
     this.lastEvaluatedKeys = [];

@@ -66,6 +66,12 @@ export class DocumentosEditComponent implements OnInit {
     // Obter o ID da rota.
     this.id = String(this.route.snapshot.paramMap.get('id'));
 
+    
+    if (this.id === 'novo') {
+      console.log('Novo registro');
+      return;
+    }
+
     // Chamar a API com o ID.
     this.getData(this.id);
 
@@ -135,28 +141,48 @@ export class DocumentosEditComponent implements OnInit {
     });
   }
 
-  
   saveData(): void {
-    if (!this.id) {
-      console.error('ID não encontrado para atualizar os dados.');
-      return;
-    }
 
-    const dataToSend = { ...this.formData };
-    if (dataToSend.DATA_NASCIMENTO) {
-      dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
-    }
+    if (!this.id || this.id === 'novo') {
 
-    const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
-    this.http.put(url, dataToSend).subscribe({
-      next: (response) => {
-        console.log('Dados atualizados com sucesso:', response);
-        this.router.navigate(['/documentos']);
-      },
-      error: (err) => {
-        console.error('Erro ao atualizar dados:', err);
-      },
-    });
+         // Criar novo registro
+         const dataToSend = { ...this.formData };
+         if (dataToSend.DATA_NASCIMENTO) {
+             dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
+         }
+ 
+         const postUrl = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
+         this.http.post<{ id: string }>(postUrl, dataToSend).subscribe({
+             next: (response) => {
+                 console.log('Registro criado com sucesso:', response);
+                 alert(`Cadastro realizado com sucesso.`);
+                 this.router.navigate([`/documentos/${response.id}`]).then(() => {
+                    window.location.reload();
+                  });
+             },
+             error: (err) => {
+                 console.error('Erro ao criar registro:', err);
+             },
+         });
+ 
+    } else {
+
+      const dataToSend = { ...this.formData };
+      if (dataToSend.DATA_NASCIMENTO) {
+        dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
+      }
+
+      const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
+      this.http.put(url, dataToSend).subscribe({
+        next: (response) => {
+          console.log('Dados atualizados com sucesso:', response);
+          this.router.navigate(['/documentos']);
+        },
+        error: (err) => {
+          console.error('Erro ao atualizar dados:', err);
+        },
+      });
+    }
   }
 
   voltar(): void{
