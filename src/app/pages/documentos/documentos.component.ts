@@ -14,8 +14,11 @@ export class DocumentosComponent implements OnInit{
   documentos: any[] = [];
   unidade = '';
   nome = '';
+  nomeResp = '';
+  cpf ='';
+  telefone = '';
   status = '';
-  pageSize = 10;
+  pageSize = 20;
   currentPage = 1; // Página atual
   totalPages = 1; // Total de páginas
   lastEvaluatedKeys: any[] = []; // Lista de lastEvaluatedKey para cada página
@@ -27,7 +30,23 @@ export class DocumentosComponent implements OnInit{
   constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit(): void {
-    this.pesquisar();
+
+    const state = history.state;
+    console.log('state', state);
+    if (state ) {
+      this.unidade = state.unidade || '';
+      this.nome = state.nome || '';
+      this.nomeResp = state.nome_resp || '';
+      this.cpf = state.cpf || '';
+      this.telefone = state.telefone || '';
+      this.status = state.status || '';
+      this.pageSize = state.page_size || 20;
+      this.currentPage = state.page || 1;
+    }
+    this.lastEvaluatedKeys = [];
+    console.log('this.currentPage', this.currentPage);
+    this.loadDocumentos();
+//    this.pesquisar();
   }
 
   // Carregar documentos
@@ -36,9 +55,13 @@ export class DocumentosComponent implements OnInit{
       .set('page_size', this.pageSize)
       .set('unidade', this.unidade)
       .set('nome', this.nome)
+      .set('nome_resp', this.nomeResp)
+      .set('cpf', this.cpf)
+      .set('telefone', this.telefone)
       .set('status', this.status)
       .set('page', this.currentPage.toString());
 
+      console.log('this.currentPage', this.currentPage);
     this.http.get<any>(this.apiUrl, { params }).subscribe(
       (response) => {
         this.documentos = response.items;
@@ -53,6 +76,21 @@ export class DocumentosComponent implements OnInit{
 
   // Ação de pesquisa
   edit(id: string): void {
+
+    const state  = {
+      page_size: this.pageSize,
+      unidade:  this.unidade,
+      nome: this.nome,
+      nome_resp: this.nomeResp,
+      cpf: this.cpf,
+      telefone: this.telefone,
+      status: this.status,
+      page: this.currentPage
+    }
+
+    sessionStorage.setItem('tableState', JSON.stringify(state));
+
+
     this.router.navigate([`/documentos/${id}`]);
   }
 

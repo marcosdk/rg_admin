@@ -153,6 +153,22 @@
                 <div class="text-center">
                     <div class="mt-4">
                       <button class="btn btn-dark mb-2" (click)="selecionarTodosJPG()">Selecionar Todos (JPGs)</button>
+
+
+
+                      <button class="btn btn-dark mb-2 ms-2" 
+                      [disabled]="arquivosSelecionados.length === 0 || excluindoArquivosSelecionados" 
+                      (click)="deleteSelectedFiles()">
+                                
+                <span *ngIf="excluindoArquivosSelecionados" class="spinner-border spinner-border-sm me-2" 
+                      role="status" 
+                      aria-hidden="true"></span>
+              
+                {{ excluindoArquivosSelecionados ? 'Excluindo Arquivos ...' : 'Excluir Arquivos Selecionados' }}
+                              
+              </button>
+
+
                       <button class="btn btn-dark mb-2 ms-2" 
                       [disabled]="arquivosSelecionados.length === 0 || gerandoPDF" 
                       (click)="gerarPDF()">

@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import imageCompression from 'browser-image-compression';
+import { forkJoin } from 'rxjs';
 
 
 @Component({
@@ -16,6 +17,7 @@ import imageCompression from 'browser-image-compression';
 export class DocumentosEditComponent implements OnInit {
   
   gerandoPDF: boolean = false;
+  excluindoArquivosSelecionados : boolean = false;
 
   form!: FormGroup;
   id!: string;
@@ -35,6 +37,7 @@ export class DocumentosEditComponent implements OnInit {
   };
 
   arquivosSelecionados: string[] = [];
+  tipoArquivosSelecionados: string[] = [];
 
   
 
@@ -90,11 +93,25 @@ export class DocumentosEditComponent implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
-  // Converter de dd/MM/yyyy para yyyy-MM-dd
+  // Converter de dd/MM/yyyy ou ddMMyyyy para yyyy-MM-dd
   formatDateToISO(date: string): string {
-    const [day, month, year] = date.split('/');
-    return `${year}-${month}-${day}`;
+    if (date.includes('/')) {
+      const [day, month, year] = date.split('/');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Se estiver no formato ddMMyyyy
+    if (/^\d{8}$/.test(date)) {
+      const day = date.substring(0, 2);
+      const month = date.substring(2, 4);
+      const year = date.substring(4, 8);
+      return `${year}-${month}-${day}`;
+    }
+
+    // Caso não reconheça o formato, retorna o valor original
+    return date;
   }
+
 
   getFiles(id: string): void {
     this.http.get<{ nome: string; link: string; key: string, extension: string, file:string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
@@ -132,7 +149,16 @@ export class DocumentosEditComponent implements OnInit {
       next: () => {
         alert('Registro excluído com sucesso.');
         console.log('Dados atualizados com sucesso:');
-        this.router.navigate(['/documentos']);
+
+
+        const state = sessionStorage.getItem('tableState');
+        if (state) {
+          const parsedState = JSON.parse(state);
+          this.router.navigate(['/documentos'], { state: parsedState });
+          sessionStorage.removeItem('tableState'); // limpa depois de usar
+        } else {
+          this.router.navigate(['/documentos']);
+        }   
       },
       error: (error) => {
         alert('Erro ao excluir o documento.');
@@ -147,8 +173,10 @@ export class DocumentosEditComponent implements OnInit {
 
          // Criar novo registro
          const dataToSend = { ...this.formData };
+         console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
          if (dataToSend.DATA_NASCIMENTO) {
              dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
+             console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
          }
  
          const postUrl = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
@@ -168,15 +196,27 @@ export class DocumentosEditComponent implements OnInit {
     } else {
 
       const dataToSend = { ...this.formData };
+      console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
       if (dataToSend.DATA_NASCIMENTO) {
         dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
+        console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
       }
 
       const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
       this.http.put(url, dataToSend).subscribe({
         next: (response) => {
           console.log('Dados atualizados com sucesso:', response);
-          this.router.navigate(['/documentos']);
+
+
+          const state = sessionStorage.getItem('tableState');
+          if (state) {
+            const parsedState = JSON.parse(state);
+            this.router.navigate(['/documentos'], { state: parsedState });
+            sessionStorage.removeItem('tableState'); // limpa depois de usar
+          } else {
+            this.router.navigate(['/documentos']);
+          }
+          
         },
         error: (err) => {
           console.error('Erro ao atualizar dados:', err);
@@ -186,7 +226,15 @@ export class DocumentosEditComponent implements OnInit {
   }
 
   voltar(): void{
-    this.router.navigate([`/documentos`]);
+
+    const state = sessionStorage.getItem('tableState');
+    if (state) {
+      const parsedState = JSON.parse(state);
+      this.router.navigate(['/documentos'], { state: parsedState });
+      sessionStorage.removeItem('tableState'); // limpa depois de usar
+    } else {
+      this.router.navigate(['/documentos']);
+    }    
   }
 
   confirmDeleteFile(tipoArquivo: string, keyArquivo: string): void {
@@ -329,14 +377,17 @@ export class DocumentosEditComponent implements OnInit {
     console.log('Selecionar/Desmarcar todos os arquivos JPG');
   
     const jpgs = this.arquivos.filter(arquivo => arquivo.extension.toLowerCase() === 'jpg').map(arquivo => arquivo.file);
+    const tpArquivoJpgs = this.arquivos.filter(arquivo => arquivo.extension.toLowerCase() === 'jpg').map(arquivo => arquivo.key);
   
     if (this.arquivosSelecionados.length === jpgs.length) {
       // Se todos os JPGs estão selecionados, desmarcar todos
       this.arquivosSelecionados = [];
+      this.tipoArquivosSelecionados = [];
       console.log('Todos desmarcados:', this.arquivosSelecionados);
     } else {
       // Se nem todos estão selecionados, marcar todos
       this.arquivosSelecionados = jpgs;
+      this.tipoArquivosSelecionados = tpArquivoJpgs;
       console.log('Todos selecionados:', this.arquivosSelecionados);
     }
   }
@@ -346,12 +397,14 @@ export class DocumentosEditComponent implements OnInit {
     console.log('toggleArquivo');
     if (arquivo.extension.toLowerCase() === 'jpg') {
       console.log('jpg');
-      const index = this.arquivosSelecionados.indexOf(arquivo.file);
+      const index = this.arquivosSelecionados.indexOf(arquivo.file);      
       console.log('index %d', index);
       if (index === -1) {
         this.arquivosSelecionados.push(arquivo.file);
+        this.tipoArquivosSelecionados.push(arquivo.key)
       } else {
         this.arquivosSelecionados.splice(index, 1);
+        this.tipoArquivosSelecionados.splice(index, 1);
       }
     }
   }
@@ -400,4 +453,63 @@ export class DocumentosEditComponent implements OnInit {
   }
 
 
+
+
+  deleteSelectedFiles(): void {
+    if (!this.tipoArquivosSelecionados || this.tipoArquivosSelecionados.length === 0) {
+      alert("Nenhum arquivo selecionado para exclusão.");
+      return;
+    }
+  
+    const confirmacao = confirm("Todos os arquivos selecionados serão excluídos. Deseja continuar?");
+    if (!confirmacao) {
+      return;
+    }
+
+    this.ngZone.run(() => {
+      this.excluindoArquivosSelecionados = true;
+    });    
+    this.cdr.detectChanges(); // Força o Angular a atualizar a UI
+
+  
+    const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file/delete`;
+  
+    let deletados = 0;
+  
+    this.tipoArquivosSelecionados.forEach((tipoArquivo, index) => {
+      const payload = {
+        idDesbravador: this.id,
+        tipoArquivo: tipoArquivo
+      };
+  
+      this.http.post(url, payload).subscribe({
+        next: () => {
+          deletados++;
+          // Se for o último da lista, exibe alerta
+          if (deletados === this.tipoArquivosSelecionados.length) {
+            this.ngZone.run(() => {
+              this.excluindoArquivosSelecionados = false;
+            });
+            this.cdr.detectChanges();
+            this.arquivosSelecionados = [];
+            this.tipoArquivosSelecionados = [];
+            alert("Arquivos selecionados excluídos com sucesso.");
+            this.getFiles(this.id); // Atualiza a lista de arquivos
+          }
+        },
+        error: (error) => {
+          console.error(`Erro ao excluir o arquivo: ${tipoArquivo}`, error);
+          // Também pode mostrar erro individual, se desejar.
+          this.ngZone.run(() => {
+            this.excluindoArquivosSelecionados = false;
+          });
+          this.cdr.detectChanges();
+        }
+      });
+    });
+  }
+  
+
 }
+
+
