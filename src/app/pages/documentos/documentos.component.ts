@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 })
 export class DocumentosComponent implements OnInit{
   documentos: any[] = [];
+  clube = '';
   unidade = '';
   nome = '';
   nomeResp = '';
@@ -23,8 +24,7 @@ export class DocumentosComponent implements OnInit{
   totalPages = 1; // Total de páginas
   lastEvaluatedKeys: any[] = []; // Lista de lastEvaluatedKey para cada página
 
-  //apiUrl = 'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos';
-  //apiUrl = '/api/cadastro/documentos';
+  
   apiUrl = environment.apiUrlDocumentos;
 
   constructor(private http: HttpClient, private router: Router) {}
@@ -34,6 +34,8 @@ export class DocumentosComponent implements OnInit{
     const state = history.state;
     console.log('state', state);
     if (state ) {
+      
+      this.clube = state.clube || '';
       this.unidade = state.unidade || '';
       this.nome = state.nome || '';
       this.nomeResp = state.nome_resp || '';
@@ -54,6 +56,7 @@ export class DocumentosComponent implements OnInit{
     const params = new HttpParams()
       .set('page_size', this.pageSize)
       .set('unidade', this.unidade)
+      .set('clube', this.clube)
       .set('nome', this.nome)
       .set('nome_resp', this.nomeResp)
       .set('cpf', this.cpf)
@@ -80,6 +83,7 @@ export class DocumentosComponent implements OnInit{
     const state  = {
       page_size: this.pageSize,
       unidade:  this.unidade,
+      clube: this.clube,
       nome: this.nome,
       nome_resp: this.nomeResp,
       cpf: this.cpf,

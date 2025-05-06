@@ -5,7 +5,8 @@ import { AuthModule } from 'angular-auth-oidc-client';
 @NgModule({
     imports: [AuthModule.forRoot({
         config: {
-              authority: 'https://cognito-idp.sa-east-1.amazonaws.com/sa-east-1_ukbz1G50a',
+              authority: 'https://cognito-idp.sa-east-1.amazonaws.com/sa-east-1_LMVO8WUCA',
+              
               redirectUrl: window.location.origin,
               postLogoutRedirectUri: window.location.origin,
               clientId: 'please-enter-clientId',

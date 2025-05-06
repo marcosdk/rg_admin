@@ -33,6 +33,7 @@ export class DocumentosEditComponent implements OnInit {
     CPF_RESPONSAVEL: '',
     RG_RESPONSAVEL: '',
     UNIDADE: '',
+    clube: '',
     STATUS: ''
   };
 
@@ -114,7 +115,7 @@ export class DocumentosEditComponent implements OnInit {
 
 
   getFiles(id: string): void {
-    this.http.get<{ nome: string; link: string; key: string, extension: string, file:string }[]>(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
+    this.http.get<{ nome: string; link: string; key: string, extension: string, file:string }[]>(`https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/list/${id}`).subscribe({
       next: (response) => {
         this.arquivos = response;
       },
@@ -125,7 +126,7 @@ export class DocumentosEditComponent implements OnInit {
   }
 
   getData(id: string): void {
-    this.http.get(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/${id}`).subscribe({
+    this.http.get(`https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/${id}`).subscribe({
       next: (response) => {
         this.formData = response;
         if (this.formData.DATA_NASCIMENTO) {
@@ -145,7 +146,7 @@ export class DocumentosEditComponent implements OnInit {
   }
   
   deleteRegistro(id: string): void {
-    this.http.delete(`https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos?id=${id}`).subscribe({
+    this.http.delete(`https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos?id=${id}`).subscribe({
       next: () => {
         alert('Registro excluído com sucesso.');
         console.log('Dados atualizados com sucesso:');
@@ -174,12 +175,12 @@ export class DocumentosEditComponent implements OnInit {
          // Criar novo registro
          const dataToSend = { ...this.formData };
          console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
-         if (dataToSend.DATA_NASCIMENTO) {
+        if (dataToSend.DATA_NASCIMENTO) {
              dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
              console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
          }
  
-         const postUrl = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
+         const postUrl = `https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
          this.http.post<{ id: string }>(postUrl, dataToSend).subscribe({
              next: (response) => {
                  console.log('Registro criado com sucesso:', response);
@@ -197,12 +198,13 @@ export class DocumentosEditComponent implements OnInit {
 
       const dataToSend = { ...this.formData };
       console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
+      console.log('dataToSend', dataToSend);
       if (dataToSend.DATA_NASCIMENTO) {
         dataToSend.DATA_NASCIMENTO = this.formatDateToISO(dataToSend.DATA_NASCIMENTO);
         console.log('dataToSend.DATA_NASCIMENTO', dataToSend.DATA_NASCIMENTO);
       }
 
-      const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
+      const url = `https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos`;
       this.http.put(url, dataToSend).subscribe({
         next: (response) => {
           console.log('Dados atualizados com sucesso:', response);
@@ -244,7 +246,7 @@ export class DocumentosEditComponent implements OnInit {
   }
 
   deleteFile(idDesbravador: string, tipoArquivo: string, keyArquivo:string): void {
-    const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file/delete`;
+    const url = `https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file/delete`;
   
     const payload = {
       idDesbravador: idDesbravador,
@@ -333,7 +335,7 @@ export class DocumentosEditComponent implements OnInit {
     formData.append('tipoDocumento', this.tipoDocumentoSelecionado);
     formData.append('arquivo', this.arquivoSelecionado);
 
-    const apiUrlUpload   = 'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file';
+    const apiUrlUpload   = 'https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file';
     const payloadUpload = {
       idDesbravador: this.id,
       tipoArquivo: this.tipoDocumentoSelecionado,
@@ -430,7 +432,7 @@ export class DocumentosEditComponent implements OnInit {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     
     this.http.post<{ message: string; pdfUrl: string }>(
-      'https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/pdf',
+      'https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/pdf',
       body,
       { headers }
     ).subscribe(response => {
@@ -472,7 +474,7 @@ export class DocumentosEditComponent implements OnInit {
     this.cdr.detectChanges(); // Força o Angular a atualizar a UI
 
   
-    const url = `https://yuw8fulryb.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file/delete`;
+    const url = `https://lrtw2k3bw6.execute-api.sa-east-1.amazonaws.com/api/cadastro/documentos/file/delete`;
   
     let deletados = 0;
   

@@ -22,7 +22,10 @@ export class AppComponent implements OnInit {
   
 
   ngOnInit(): void {
-      
+    this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated, userData }) => {
+      console.log('Autenticado:', isAuthenticated);
+      console.log('Dados do usuário:', userData);
+    });
   }
 
   login(): void {
@@ -39,7 +42,7 @@ export class AppComponent implements OnInit {
       window.sessionStorage.clear();
     }
                             
-    window.location.href = "https://sa-east-1ukbz1g50a.auth.sa-east-1.amazoncognito.com/login?client_id=7mti6kj1asbe4acqufmt84hnp1&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fd2xifqim8uhfbn.cloudfront.net"; 
+    window.location.href = "https://sa-east-1lmvo8wuca.auth.sa-east-1.amazoncognito.com/login?client_id=ichsuho5jf6lerglnh08fhj5k&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fd2jwpu4p6sa7z9.cloudfront.net"; 
 
   }
 

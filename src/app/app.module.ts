@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import {AuthModule} from 'angular-auth-oidc-client';
+import {AuthModule, LogLevel} from 'angular-auth-oidc-client';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -45,16 +45,17 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     NgxMaskDirective,
     AuthModule.forRoot({
       config: {
-        authority: 'https://cognito-idp.sa-east-1.amazonaws.com/sa-east-1_ukbz1G50a',
-        //redirectUrl: 'https://d2xifqim8uhfbn.cloudfront.net/auth-callback',
-        //redirectUrl: 'http://localhost:4200/auth-callback',
+        authority: 'https://cognito-idp.sa-east-1.amazonaws.com/sa-east-1_LMVO8WUCA',  
+       
         redirectUrl:environment.AuthRedirectUrl,
         postLogoutRedirectUri: window.location.origin,
-        clientId: '7mti6kj1asbe4acqufmt84hnp1',
+        clientId: 'ichsuho5jf6lerglnh08fhj5k',
+        //scope: 'email',
         scope: 'email openid phone profile',
         responseType: 'code',
         silentRenew: true,
         useRefreshToken: true,
+        logLevel: LogLevel.Debug,
         // Configuração para Português Brasil
         customParamsAuthRequest: {
           ui_locales: 'pt-BR', // Configura o idioma preferencial
