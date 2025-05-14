@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth/auth.service';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { inject } from '@angular/core';
+import { Clubes } from '../clubes/clubes';
 
 
 @Component({
@@ -13,10 +12,10 @@ import { inject } from '@angular/core';
 export class TopComponent implements OnInit {
 
 
-  private readonly oidcSecurityService = inject(OidcSecurityService);
-
   nomeUsuario?: string;
   emailUsuario?: string;
+  
+  clube?: string;
   dropdownVisible = false; // Controle do estado do dropdown
   
   isAuthenticated = false;
@@ -25,15 +24,7 @@ export class TopComponent implements OnInit {
 
 
   ngOnInit() {
-
-    this.oidcSecurityService.checkAuth().subscribe((dados) => {
-      
-      if (dados.isAuthenticated) {
-        this.emailUsuario = dados.userData.email;
-        this.nomeUsuario = dados.userData.name;
-      }
-    });
-
+    this.preencheDados()
   }
 
   logout(){
@@ -47,16 +38,16 @@ export class TopComponent implements OnInit {
     }
   }
 
+  preencheDados(){
+
+    this.emailUsuario = this.authService.getEmail();
+    this.nomeUsuario = this.authService.getNome();
+    this.clube = Clubes[this.authService.getGrupos()[0]];
+  }
+
   toggleDropdown() {
     this.dropdownVisible = !this.dropdownVisible;
-
-    this.oidcSecurityService.checkAuth().subscribe((dados) => {
-      
-      if (dados.isAuthenticated) {
-        this.emailUsuario = dados.userData.email;
-        this.nomeUsuario = dados.userData.name;
-      }
-    });
+    this.preencheDados()
   }
 }
 

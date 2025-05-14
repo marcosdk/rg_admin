@@ -24,16 +24,12 @@
                 <div class="col-sm-3">
                   <label class="form-label">Clube</label>
                   <select class="form-select" [(ngModel)]="clube" aria-label="Default select example">
-                    <option value="">Todas</option>
-                    <option value="Clube Colina Verde">Clube Colina Verde</option>
-                    <option value="Clube Coroa Boreal">Clube Coroa Boreal</option>
-                    <option value="Clube Embaixadores de Cristo">Clube Embaixadores de Cristo</option>
-                    <option value="Clube Embu das Artes">Clube Embu das Artes</option>
-                    <option value="Clube Gigantes da Fé">Clube Gigantes da Fé</option>
-                    <option value="Clube Guarany">Clube Guarany</option>
-                    <option value="Clube Leões da Colina">Clube Leões da Colina</option>
-                    <option value="Clube Leões da Vitória">Clube Leões da Vitória</option>
-                    <option value="Clube Luzeiros da Serra">Clube Luzeiros da Serra</option>                    
+                    
+                    <option *ngIf="mostrarTodosClubes" value="">Todos</option>
+                    <option *ngFor="let nome of clubesDisponiveis" [value]="nome">
+                        {{ nome }}
+                    </option>
+
                   </select>
                 </div>
                 <div class="col-sm-3">

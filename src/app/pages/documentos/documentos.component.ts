@@ -2,6 +2,8 @@ import { Component , OnInit} from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../services/auth/auth.service';
+import { Clubes } from '../../componentes/clubes/clubes';
 
 @Component({
   selector: 'app-documentos',
@@ -24,15 +26,33 @@ export class DocumentosComponent implements OnInit{
   totalPages = 1; // Total de páginas
   lastEvaluatedKeys: any[] = []; // Lista de lastEvaluatedKey para cada página
 
+
+   clubesDisponiveis: string[] = [];
+   mostrarTodosClubes: boolean = false;
+   clubeLogado = '';
+
   
   apiUrl = environment.apiUrlDocumentos;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private auth: AuthService) {}
 
   ngOnInit(): void {
 
+  
+    this.clubeLogado = Clubes[this.auth.getGrupos()[0]];
+
+    if (this.clubeLogado === 'Equipe Regional') {
+      this.clubesDisponiveis = Object.values(Clubes);
+      this.mostrarTodosClubes = true;
+    } else {
+      this.clubesDisponiveis = [this.clubeLogado];
+      this.mostrarTodosClubes = false;
+    }
+
+
+
+
     const state = history.state;
-    console.log('state', state);
     if (state ) {
       
       this.clube = state.clube || '';
@@ -47,8 +67,14 @@ export class DocumentosComponent implements OnInit{
     }
     this.lastEvaluatedKeys = [];
     console.log('this.currentPage', this.currentPage);
+
+    if (this.clubeLogado === 'Equipe Regional') {
+      this.clube = '';
+    } else {
+      this.clube = this.clubeLogado;
+    }    
     this.loadDocumentos();
-//    this.pesquisar();
+
   }
 
   // Carregar documentos

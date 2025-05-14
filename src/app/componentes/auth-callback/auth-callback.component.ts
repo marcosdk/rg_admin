@@ -36,6 +36,13 @@ export class AuthCallbackComponent implements OnInit {
       if (dados.isAuthenticated) {
         this.authService.setEmail(dados.userData.email);
         this.authService.setNome(dados.userData.name);
+        
+        const idToken = dados.idToken;
+        const payloadBase64 = idToken.split('.')[1];
+        const decodedPayload = JSON.parse(atob(payloadBase64));
+        const grupos = decodedPayload['cognito:groups'] || [];
+
+        this.authService.setGrupos(grupos);
        
         this.router.navigate(['/']); // Redirecionar para a home após autenticação
       } else {

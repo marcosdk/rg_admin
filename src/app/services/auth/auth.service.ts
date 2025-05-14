@@ -12,8 +12,9 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
 
-    email: string | null = null;
-    nome: string | null = null;
+    email?: string;
+    nome?: string ;
+    grupos: string[] = [];
 
     public isAuthenticated: Observable<boolean>;
 
@@ -30,8 +31,15 @@ export class AuthService {
         this.email = email;
     }
     
-    getEmail(): string | null {
-        return this.email;
+    getEmail(): string  {
+
+        this.oidcSecurityService.checkAuth().subscribe((dados) => {
+            
+            if (dados.isAuthenticated) {
+                this.email = dados.userData.email;
+            }
+        });
+        return this.email ?? '';
     }
 
 
@@ -39,9 +47,43 @@ export class AuthService {
         this.nome = nome;
     }
     
-    getNome(): string | null {
-        return this.nome;
+    getNome(): string  {
+
+        this.oidcSecurityService.checkAuth().subscribe((dados) => {
+            
+            if (dados.isAuthenticated) {
+                this.nome = dados.userData.name;
+            }
+        });        
+        return this.nome ?? '';
     }
+
+    setGrupos(grupos: string[]): void {
+        this.grupos = grupos;
+    }
+
+    getGrupos(): string[] {
+
+
+        this.oidcSecurityService.checkAuth().subscribe((dados) => {
+              
+            if (dados.isAuthenticated) {
+               
+                const idToken = dados.idToken;
+        
+                // Decodifica o ID token manualmente
+                const payloadBase64 = idToken.split('.')[1];
+                const decodedPayload = JSON.parse(atob(payloadBase64));
+        
+                console.log('Token decodificado:', decodedPayload);
+                const gruposDec = decodedPayload['cognito:groups'];
+                this.grupos =gruposDec;
+            }        
+        });
+
+        return this.grupos;
+    }
+
     login() {
         console.log("logando");
         this.oidcSecurityService.authorize();

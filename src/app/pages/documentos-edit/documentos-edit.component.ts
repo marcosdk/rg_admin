@@ -2,9 +2,11 @@ import { Component, OnInit, ViewChild,ElementRef, ChangeDetectorRef , NgZone  } 
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import imageCompression from 'browser-image-compression';
-import { forkJoin } from 'rxjs';
+
+import { AuthService } from '../../services/auth/auth.service';
+import { Clubes } from '../../componentes/clubes/clubes';
 
 
 @Component({
@@ -18,6 +20,9 @@ export class DocumentosEditComponent implements OnInit {
   
   gerandoPDF: boolean = false;
   excluindoArquivosSelecionados : boolean = false;
+  clubeLogado = '';
+  clubesDisponiveis: string[] = [];
+  mostrarTodosClubes: boolean = false;
 
   form!: FormGroup;
   id!: string;
@@ -58,7 +63,7 @@ export class DocumentosEditComponent implements OnInit {
     { key: 'cpfResponsavel', label: 'CPF do Responsável' }
   ];
 
-  constructor(private route: ActivatedRoute, private http: HttpClient,  private fb: FormBuilder, private router: Router, private cdr: ChangeDetectorRef, private ngZone: NgZone) {
+  constructor(private route: ActivatedRoute, private http: HttpClient,  private fb: FormBuilder, private router: Router, private cdr: ChangeDetectorRef, private ngZone: NgZone, private auth: AuthService) {
     this.form = this.fb.group(
       {
         uploadArquivo: [null],
@@ -67,14 +72,30 @@ export class DocumentosEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
     // Obter o ID da rota.
     this.id = String(this.route.snapshot.paramMap.get('id'));
 
+    this.clubeLogado = Clubes[this.auth.getGrupos()[0]];
+    console.log('clubeLogado', this.clubeLogado);
+
+   if (this.clubeLogado === 'Equipe Regional') {
+      this.clubesDisponiveis = Object.values(Clubes);
+      this.mostrarTodosClubes = true;
+    } else {
+      this.clubesDisponiveis = [this.clubeLogado];
+      this.mostrarTodosClubes = false;
+    }
+
+    this.formData.clube = this.clubeLogado;
+    console.log('this.mostrarTodosClubes', this.mostrarTodosClubes);
     
     if (this.id === 'novo') {
       console.log('Novo registro');
       return;
     }
+
+    
 
     // Chamar a API com o ID.
     this.getData(this.id);
